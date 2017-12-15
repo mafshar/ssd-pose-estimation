@@ -8,13 +8,31 @@ from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.merge import Concatenate
-from config_reader import config_reader
+
 import scipy
 import math
 
+import cv2
+import matplotlib
+import pylab as plt
+import numpy as np
+from packages import freenect
+from packages import frame_convert2
+from packages import util
+from config_reader import config_reader
+
+import tensorflow as tf
+import numpy as np
+import six.moves.urllib as urllib
+import matplotlib.image as mpimg
+
+from time import time
+from collections import defaultdict
+from io import StringIO
+from matplotlib import pyplot as plt
+from PIL import Image
 
 # Helper functions to create a model
-
 
 def relu(x):
     return Activation('relu')(x)
@@ -102,9 +120,7 @@ def stageT_block(x, num_p, stage, branch):
 
     return x
 
-
-# Create keras model and load weights
-
+# CREATE KERAS MODEL AND LOAD WEIGHTS:
 
 weights_path = "model/keras/model.h5" # orginal weights converted from caffe
 #weights_path = "training/weights.best.h5" # weights tarined from scratch
@@ -137,33 +153,12 @@ for sn in range(2, stages + 1):
 model = Model(img_input, [stageT_branch1_out, stageT_branch2_out])
 model.load_weights(weights_path)
 
-
-# Load a sample image
-
-
-# get_ipython().magic(u'matplotlib inline')
-import cv2
-import matplotlib
-import pylab as plt
-import numpy as np
-# import freenect
-# import frame_convert2
-
-import tensorflow as tf
-import numpy as np
-import six.moves.urllib as urllib
-import matplotlib.image as mpimg
-import util
-from time import time
-from collections import defaultdict
-from io import StringIO
-from matplotlib import pyplot as plt
-from PIL import Image
-
 slim = tf.contrib.slim
 
 def get_video():
+    ## getting video from the kinect
     # return frame_convert2.video_cv(freenect.sync_get_video()[0])
+    ## getting video from the mac builtin camera
     return cv2.VideoCapture(0).read()[1];
 
 def fig2data ( fig ):
@@ -184,29 +179,26 @@ def fig2data ( fig ):
     buf = np.roll ( buf, 3, axis = 2 )
     return buf
 
+# USED FOR THE TESTS
 
-
-test_image = 'sample_images/bobst_img_1.jpg'
-# test_image = 'sample_images/test_img_2.jpg'
+test_image = 'data/setup_data/init_frame.jpg'
 oriImg = cv2.imread(test_image) # B,G,R order
 # img = get_video()
 # oriImg = img # B,G,R order
-plt.imshow(oriImg[:,:,[2,1,0]])
-# plt.show()
+plt.imshow(oriImg[:,:,[2,1,0]]) ## showing original image
 
 # Load configuration
 
-
 param, model_params = config_reader()
-
 multiplier = [x * model_params['boxsize'] / oriImg.shape[0] for x in param['scale_search']]
-
 
 # Show sample heatmaps for right elbow and paf for right wrist and right elbow
 
-
 heatmap_avg = np.zeros((oriImg.shape[0], oriImg.shape[1], 19))
 paf_avg = np.zeros((oriImg.shape[0], oriImg.shape[1], 38))
+
+## DISPLAYING GRAPHS AND PLOTS
+
 # first figure shows padded images
 # f, axarr = plt.subplots(1, len(multiplier))
 # f.set_size_inches((20, 5))
@@ -256,6 +248,8 @@ for m in range(len(multiplier)):
     heatmap_avg = heatmap_avg + heatmap / len(multiplier)
     paf_avg = paf_avg + paf / len(multiplier)
 
+## MORE GRAPHS AND PLOTS:
+
 # f2.subplots_adjust(right=0.93)
 # cbar_ax = f2.add_axes([0.95, 0.15, 0.01, 0.7])
 # _ = f2.colorbar(ax2, cax=cbar_ax)
@@ -271,7 +265,6 @@ for m in range(len(multiplier)):
 # at index 9. All body parts are defined in config:
 # part_str = [nose, neck, Rsho, Relb, Rwri, Lsho, Lelb, Lwri, Rhip, Rkne, Rank, Lhip, Lkne, Lank, Leye, Reye, Lear, Rear, pt19]
 
-
 # plt.imshow(oriImg[:,:,[2,1,0]])
 # plt.imshow(heatmap_avg[:,:,9], alpha=.5)
 # fig = matplotlib.pyplot.gcf()
@@ -281,9 +274,7 @@ for m in range(len(multiplier)):
 # cbar_ax = fig.add_axes([0.95, 0.15, 0.01, 0.7])
 # _ = fig.colorbar(ax2, cax=cbar_ax)
 
-
 # paf vectors for right elbow and right wrist
-
 
 from numpy import ma
 U = paf_avg[:,:,16] * -1
@@ -304,9 +295,7 @@ Q = plt.quiver(X[::s,::s], Y[::s,::s], U[::s,::s], V[::s,::s],
 fig = matplotlib.pyplot.gcf()
 fig.set_size_inches(20, 20)
 
-
 # Visualise all detected body parts. Note that we use peaks in heatmaps
-
 
 from scipy.ndimage.filters import gaussian_filter
 all_peaks = []
@@ -335,12 +324,10 @@ for part in range(19-1):
     peak_counter += len(peaks)
 
 
-
 # find connection in the specified sequence, center 29 is in the position 15
 limbSeq = [[2,3], [2,6], [3,4], [4,5], [6,7], [7,8], [2,9], [9,10],            [10,11], [2,12], [12,13], [13,14], [2,1], [1,15], [15,17],            [1,16], [16,18], [3,17], [6,18]]
 # the middle joints heatmap correpondence
 mapIdx = [[31,32], [39,40], [33,34], [35,36], [41,42], [43,44], [19,20], [21,22],           [23,24], [25,26], [27,28], [29,30], [47,48], [49,50], [53,54], [51,52],           [55,56], [37,38], [45,46]]
-
 
 
 connection_all = []
@@ -490,4 +477,4 @@ for i in range(17):
 plt.imshow(canvas[:,:,[2,1,0]])
 fig = matplotlib.pyplot.gcf()
 fig.set_size_inches(12, 12)
-plt.show()
+plt.show() ## to display the final result, can write to a file instead

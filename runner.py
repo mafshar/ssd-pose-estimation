@@ -5,8 +5,8 @@ import sys
 import tarfile
 import signal
 import cv2
-import freenect
-import frame_convert2
+from packages import freenect
+from packages import frame_convert2
 
 # sys.path.append('/Users/mohammadafshar1/projects/models/research/') # point to your tensorflow dir
 # sys.path.append('/Users/mohammadafshar1/projects/models/research/slim') # point ot your slim dir

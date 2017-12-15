@@ -6,8 +6,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-directories = ['./data/op_flow1', './data/op_flow2', './data/op_flow3']
-count = 1
+
 def sort_files(files):
     ret = []
     # sort files numerically
@@ -18,17 +17,25 @@ def sort_files(files):
     ret = [str(f) + ".png" for f in ret]
     return ret
 
-for dir in directories:
-    video_name = str(count) + "_mov.avi"
-    video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*"MJPG"), 30, (1080, 720))
 
-    # read in all files
-    files = sort_files([f for f in listdir(dir) if isfile(join(dir,f))])
+def run():
+    directories = ['./data/op_flow1', './data/op_flow2', './data/op_flow3']
+    count = 1
 
-    for file in files:
-        img = cv2.imread(join(dir, file))
-        video.write(img)
+    for dir in directories:
+        video_name = str(count) + "_mov.avi"
+        video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*"MJPG"), 30, (1080, 720))
 
-    print "Saving video"
-    video.release()
-    count += 1
+        # read in all files
+        files = sort_files([f for f in listdir(dir) if isfile(join(dir,f))])
+
+        for file in files:
+            img = cv2.imread(join(dir, file))
+            video.write(img)
+
+        print "Saving video"
+        video.release()
+        count += 1
+
+if __name__ == '__main__':
+    run()
