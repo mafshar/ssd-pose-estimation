@@ -109,4 +109,6 @@ The rest of this README details our process/results, as well as details on how t
 
     The algorithm did not work for the elbows. As you can see, as Mohammad moves across the screen, the elbow 'points' are completely static, meaning the algorithm wasn't able to track these points. We believe this is because Mohammad is wearing a large black sweatshirt, which makes it more difficult for the algorithm to recognize when there's been a change in position.
 
-## Running
+## Setup and Running
+
+ TODO
